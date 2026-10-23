@@ -1,0 +1,11 @@
+FROM ubuntu:24.04
+
+ENV DEBIAN_FRONTEND=noninteractive
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    build-essential clang llvm libbpf-dev libelf-dev zlib1g-dev \
+    cmake pkg-config linux-tools-common linux-tools-generic ca-certificates \
+    bc bison flex libssl-dev dwarves curl xz-utils python3 cpio kmod \
+    && rm -rf /var/lib/apt/lists/*
+
+WORKDIR /workspace
+CMD ["bash"]

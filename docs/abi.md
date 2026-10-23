@@ -1,0 +1,7 @@
+# CoreFlux device ABI version 1
+
+CoreFlux exposes a misc character device named `/dev/coreflux`. The shared C UAPI is `include/coreflux/uapi.h`. Requests use fixed-width Linux types and begin with `size` and `abi_version`; both must exactly match version 1. Unknown ioctl numbers and wrong ioctl types return `ENOTTY`. Invalid structure values return `EINVAL`; bad pointers return `EFAULT`.
+
+`CF_GET_VERSION` returns module version 0.1. `CF_SET_CONFIG` accepts `CF_EVENT_MASK_SCHED_SWITCH` or zero to disable collection; the sampling interval must be 1–60000 ms. The interval is reserved for future sampled event classes and does not throttle scheduler events. `CF_GET_STATS` reports cumulative emitted and dropped event counts and current mode. `CF_RESET_STATS` clears the counters. The module starts in observe-only mode. `CF_SET_MODE` accepts observe-only and rejects controlled mode. Resource control is implemented in the separate userspace `coreflux-policy` tool; it does not enable a controlled kernel-device mode.
+
+The device is root-accessible by default (`0600`). Its ioctl path does not change task scheduling or cgroups. `CF_GET_RING_INFO` describes the shared ring mapping. Event retrieval uses shared `mmap`; `read` remains unimplemented. The ABI is tested by `tests/kernel/ioctl_smoke.c` against a real loaded module, including malformed size, version, command, sample interval, mode and pointer cases.

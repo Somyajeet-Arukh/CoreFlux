@@ -1,0 +1,9 @@
+# CoreFlux architecture
+
+CoreFlux is a set of experiment tools rather than a continuously running closed-loop service. Controlled workloads create measurable contention and scheduler activity. Two collection paths observe the running kernel: the custom module exposes a versioned `/dev/coreflux` control interface and bounded per-CPU event rings read by `coreflux-ring-reader`; the eBPF path attaches to scheduler tracepoints and delivers events through its own userspace loader. The paths use matching scheduler-event fields so their outputs can be checked and compared.
+
+Recorded events and workload signals feed the analysis experiment. The observe-only scorer produces per-window contention decisions. `coreflux-policy` can consume a qualifying decision and, when explicitly run with `--apply`, change a specified CoreFlux workload's affinity, nice value or CPU cgroup for a bounded duration. It records the prior state and restores it when the action ends. The policy is separate from the kernel module's observe-only device mode.
+
+The public user-space event contract is in `include/coreflux/event.hpp`; the device ABI is in `include/coreflux/uapi.h` and [documented separately](abi.md). JSONL is an experiment output format, not the ioctl or mmap ABI. `coreflux-agent --synthetic` exercises recorder serialization and is explicitly marked as synthetic so it cannot be confused with live scheduler observations.
+
+The experiments progress from baseline and live delivery checks through contention analysis and bounded intervention to module-only telemetry characterization and a matched-workload backend comparison. See [validation scope](validation-scope.md), [telemetry methodology](telemetry-scalability.md), [comparison methodology](backend-comparison.md), and [release checks](release-hardening.md). All measured performance results are scoped to the WSL2 host and controlled workloads used here.

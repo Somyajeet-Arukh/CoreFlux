@@ -1,0 +1,16 @@
+build/
+__pycache__/
+*.py[cod]
+benchmarks/baseline/*.json
+benchmarks/baseline/*.jsonl
+benchmarks/reports/*.json
+benchmarks/reports/*.jsonl
+benchmarks/reports/*.csv
+benchmarks/reports/*.txt
+*.o
+*.ko
+*.mod
+*.mod.c
+*.cmd
+Module.symvers
+modules.order
