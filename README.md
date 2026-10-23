@@ -1,6 +1,6 @@
 # CoreFlux
 
-CoreFlux is an experimental Linux resource-contention framework. It collects live scheduler events through a custom kernel module or eBPF, combines those observations with system pressure signals, scores contention, and can apply temporary resource controls to a specified workload. It also measures the reliability and cost of its own telemetry pipeline.
+CoreFlux is an experimental Linux resource-contention and telemetry framework. It collects live scheduler events through a custom kernel module or eBPF, combines those observations with system pressure signals, scores contention, and can apply temporary resource controls to a specified workload. It also measures the reliability and cost of its own telemetry pipeline.
 
 The implementation and reported experiments were validated on a WSL2 kernel using Docker. Controlled workloads generate pressure, while scheduler events are observed from the running kernel. The results describe this environment and are not production or bare-metal performance claims.
 
