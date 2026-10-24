@@ -3,6 +3,8 @@
 #include <cmath>
 #include <stdexcept>
 
+using namespace std;
+
 namespace coreflux {
 const char *state_name(State state) {
     switch (state) {
@@ -14,25 +16,25 @@ const char *state_name(State state) {
     }
     return "UNKNOWN";
 }
-Scorer::Scorer(std::array<double, 5> weights, double hysteresis, std::uint64_t cooldown_ns)
+Scorer::Scorer(array<double, 5> weights, double hysteresis, uint64_t cooldown_ns)
     : weights_(weights), hysteresis_(hysteresis), cooldown_ns_(cooldown_ns) {
     double sum = 0;
     for (double weight : weights_) {
-        if (!std::isfinite(weight) || weight < 0) throw std::invalid_argument("invalid weight");
+        if (!isfinite(weight) || weight < 0) throw invalid_argument("invalid weight");
         sum += weight;
     }
     if (sum <= 0 || hysteresis < 0 || hysteresis >= 0.1)
-        throw std::invalid_argument("invalid scoring configuration");
+        throw invalid_argument("invalid scoring configuration");
     for (double &weight : weights_) weight /= sum;
 }
 Decision Scorer::update(const Sample &sample) {
     double weighted = 0, coverage = 0;
-    std::array<double, 5> contributions{};
-    for (std::size_t i = 0; i < 5; ++i) {
+    array<double, 5> contributions{};
+    for (size_t i = 0; i < 5; ++i) {
         const double value = sample.signal[i];
         if (value == -1) continue;
-        if (!std::isfinite(value) || value < 0 || value > 1)
-            throw std::invalid_argument("signal outside 0..1");
+        if (!isfinite(value) || value < 0 || value > 1)
+            throw invalid_argument("signal outside 0..1");
         weighted += weights_[i] * value;
         coverage += weights_[i];
         contributions[i] = weights_[i] * value;
@@ -40,7 +42,7 @@ Decision Scorer::update(const Sample &sample) {
     if (coverage < 0.5) return {State::unknown, 0, coverage, {}, "none", false};
     for (double &value : contributions) value /= coverage;
     const double score = weighted / coverage;
-    const std::array<double, 3> thresholds{0.3, 0.6, 0.8};
+    const array<double, 3> thresholds{0.3, 0.6, 0.8};
     int level = static_cast<int>(state_);
     if (level > 3) level = 0;
     const bool cooled = !initialized_ || sample.timestamp_ns >= last_transition_ns_ + cooldown_ns_;
@@ -51,8 +53,8 @@ Decision Scorer::update(const Sample &sample) {
     }
     if (changed) { state_ = static_cast<State>(level); last_transition_ns_ = sample.timestamp_ns; }
     initialized_ = true;
-    const auto dominant_index = std::distance(contributions.begin(),
-        std::max_element(contributions.begin(), contributions.end()));
+    const auto dominant_index = distance(contributions.begin(),
+        max_element(contributions.begin(), contributions.end()));
     return {state_, score, coverage, contributions, signal_names[dominant_index], changed};
 }
 } // namespace coreflux

@@ -6,40 +6,42 @@
 #include <stdexcept>
 #include <string>
 
-static std::array<double, 5> parse_five(const std::string &value) {
-    std::array<double, 5> result{};
-    std::stringstream input(value);
-    std::string field;
+using namespace std;
+
+static array<double, 5> parse_five(const string &value) {
+    array<double, 5> result{};
+    stringstream input(value);
+    string field;
     for (double &number : result) {
-        if (!std::getline(input, field, ',')) throw std::invalid_argument("expected five values");
-        number = std::stod(field);
+        if (!getline(input, field, ',')) throw invalid_argument("expected five values");
+        number = stod(field);
     }
-    if (std::getline(input, field, ',')) throw std::invalid_argument("expected five values");
+    if (getline(input, field, ',')) throw invalid_argument("expected five values");
     return result;
 }
 int main(int argc, char **argv) {
     if (argc != 3 && argc != 4) {
-        std::cerr << "usage: coreflux-analyze SIGNALS.csv OUTPUT.jsonl [five,comma,separated,weights]\n";
+        cerr << "usage: coreflux-analyze SIGNALS.csv OUTPUT.jsonl [five,comma,separated,weights]\n";
         return 2;
     }
     try {
         const auto weights = argc == 4 ? parse_five(argv[3]) :
-            std::array<double, 5>{0.35, 0.2, 0.25, 0.1, 0.1};
+            array<double, 5>{0.35, 0.2, 0.25, 0.1, 0.1};
         coreflux::Scorer scorer(weights);
-        std::ifstream input(argv[1]);
-        std::ofstream output(argv[2]);
+        ifstream input(argv[1]);
+        ofstream output(argv[2]);
         if (!input || !output) return 1;
-        std::string line;
-        std::getline(input, line); // header
-        std::size_t rows = 0;
-        std::uint64_t previous_timestamp = 0;
-        while (std::getline(input, line)) {
+        string line;
+        getline(input, line); // header
+        size_t rows = 0;
+        uint64_t previous_timestamp = 0;
+        while (getline(input, line)) {
             if (line.empty()) continue;
             const auto comma = line.find(',');
-            if (comma == std::string::npos) throw std::invalid_argument("invalid row");
-            const auto timestamp = std::stoull(line.substr(0, comma));
+            if (comma == string::npos) throw invalid_argument("invalid row");
+            const auto timestamp = stoull(line.substr(0, comma));
             if (rows && timestamp <= previous_timestamp)
-                throw std::invalid_argument("timestamps must increase");
+                throw invalid_argument("timestamps must increase");
             previous_timestamp = timestamp;
             const auto signal = parse_five(line.substr(comma + 1));
             const auto decision = scorer.update({timestamp, signal});
@@ -55,9 +57,9 @@ int main(int argc, char **argv) {
             ++rows;
         }
         if (!rows || !output) return 1;
-        std::cout << "analyzed " << rows << " samples\n";
-    } catch (const std::exception &error) {
-        std::cerr << error.what() << '\n';
+        cout << "analyzed " << rows << " samples\n";
+    } catch (const exception &error) {
+        cerr << error.what() << '\n';
         return 1;
     }
 }
